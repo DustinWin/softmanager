@@ -1,0 +1,184 @@
+name: Update QQPCSoftMgr
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * 5"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+
+jobs:
+  extract:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Set locale and language in China
+        run: |
+          Set-WinSystemLocale zh-CN
+          Set-Culture zh-CN
+          Set-WinUILanguageOverride zh-CN
+          $env:LANG = 'zh-CN'
+
+      - name: Install `QQPCMgr` and running 60s
+        run: |
+          .\PCMgr_Setup_15_6_23123_201.exe /S
+          Start-Sleep -Seconds 60
+
+      - name: Open `QQPCSoftMgr` and running 120s
+        run: |
+          "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQPCSoftMgr.exe"
+          Start-Sleep -Seconds 120
+
+      - name: Copy files
+        run: |
+          md 15.6.23123.201 libraries upload_files
+          taskkill /f /t /im QQPC*
+          taskkill /f /t /im QMDL*
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\Image" "15.6.23123.201\Image" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\Images" "15.6.23123.201\Images" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\plugins\SoftUninstall" "15.6.23123.201\plugins\SoftUninstall" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\qbclient" "15.6.23123.201\qbclient" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\qmsoftmgrupdate" "15.6.23123.201\qmsoftmgrupdate" /im /is /it /mt:32
+          del /f /s /q "15.6.23123.201\qmsoftmgrupdate\updatedate.txt"
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SoftMgr" "15.6.23123.201\SoftMgr" /im /is /it /mt:32
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\Soft*" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQPCSoft*" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\beacon_sdk.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\Common.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\dr.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\FastUninstScpt.etf" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\GF.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\GlobalConfig.etf" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\LoadError.html" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\msvcp*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\p2papp.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\PackageMgr.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\ptrate.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMCommon.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMDL.exe" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMDlder.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMDns.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMExt.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMGuid*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMIpc*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMNetworkMgr*" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMPrivilege*" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMScriptHost.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMStuck*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QMSysRepProv*" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQFileFlt.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQPCExternal.exe" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQPCMgr.exe" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SmartInstall.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\TAVEng.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\TenioDL*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\TSSysKitProxy.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\vccorlib*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\vcomp*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\vccorlib*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\vcruntime*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\xGraphic*.dll" "15.6.23123.201"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\zlib.dll" "15.6.23123.201"
+
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\GlobalConfig.etf" "libraries"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SoftPolicy.etf" "libraries"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SoftVerInfo.etf" "libraries"
+        shell: cmd
+
+      - name: Install `WinRAR`
+        run: choco install winrar -y
+
+      - name: Zip `QQPCSoftMgr` files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -afzip QQPCSoftMgr.zip 15.6.23123.201\* -r
+        shell: cmd
+
+      - name: Zip `libraries` files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -afzip libraries.zip libraries\* -r
+        shell: cmd
+
+      - name: Create `WinRAR` sfx config
+        run: |
+          $content = @"
+          Path="%PROGRAMFILES(X86)%\Tencent\QQPCMgr"
+          Setup=15.6.23123.201\QQPCSoftMgr.exe
+          Title=软件管理
+          Text
+          {
+          提取自腾讯电脑管家 15.6.23123.201 版本
+          }
+          Silent=0
+          Overwrite=1
+          Shortcut=D, "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\QQPCSoftMgr.exe", , 安装、升级和卸载应用程序, 软件管理, "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\Images\softmgr.ico"
+          "@
+
+          $bytes = [System.Text.Encoding]::GetEncoding("GB2312").GetBytes($content)
+          [System.IO.File]::WriteAllBytes("config.txt", $bytes)
+
+      - name: Create self-extracting exe and copy files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -sfx -z"config.txt" -r QQPCSoftMgr.exe 15.6.23123.201\*
+          copy /y QQPCSoftMgr.zip upload_files
+          copy /y QQPCSoftMgr.exe upload_files
+          copy /y libraries.zip upload_files
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\GlobalConfig.etf" "upload_files"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SoftPolicy.etf" "upload_files"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\15.6.23123.201\SoftVerInfo.etf" "upload_files"
+        shell: cmd
+
+      - name: Upload files to workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: QQPCSoftMgr
+          path: upload_files/*
+          compression-level: 9
+
+  push:
+    runs-on: ubuntu-latest
+    needs: extract
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Set variables
+        run: |
+          echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
+        shell: bash
+
+      - name: Download files from workspace
+        uses: actions/download-artifact@v4
+        with:
+          path: .
+
+      - name: Release and upload `QQPCSoftMgr` assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: QQPCSoftMgr
+          tag: QQPCSoftMgr
+          overwrite: true
+          body: |
+            [腾讯软件管理](https://pc.qq.com)免安装绿色版提取自[腾讯电脑管家](https://guanjia.qq.com) v15.6.23123.201 版本
+            软件库文件更新于 ${{ env.update_version }}
+          file_glob: true
+          file: ./QQPCSoftMgr/*
+
+      - name: Purge jsDelivr CDN
+        run: |
+          cd ./QQPCSoftMgr/ || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@QQPCSoftMgr/${file}"
+          done
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 3
+          keep_minimum_runs: 1
