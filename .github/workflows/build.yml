@@ -51,6 +51,12 @@ jobs:
           Start-Sleep -Seconds 60
         shell: pwsh
 
+      - name: Update libraries and wating 10s
+        run: |
+          Start-Process -FilePath "C:\Program Files (x86)\Tencent\QQPCMgr\${{ env.version }}\QMUpdate\QQPCMgrUpdate.exe" -ArgumentList "/datafile /elevated" -Verb RunAs
+          Start-Sleep -Seconds 10
+        shell: pwsh
+
       - name: Open `QQPCSoftMgr` and running 120s
         run: |
           Start-Process -FilePath "C:\Program Files (x86)\Tencent\QQPCMgr\${{ env.version }}\QQPCSoftMgr.exe"
