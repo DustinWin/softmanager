@@ -1,0 +1,207 @@
+name: Update QQPCSoftMgr
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * 5"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+
+jobs:
+  environment:
+    runs-on: ubuntu-latest
+    outputs:
+      update_time: ${{ steps.environment.outputs.update_time }}
+      qqpcmgr_version: ${{ steps.environment.outputs.qqpcmgr_version }}
+      executable_file: ${{ steps.environment.outputs.executable_file }}
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Set variables
+        id: environment
+        run: |
+          echo "update_time=$(date -d '+8 hours' +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "qqpcmgr_version=$(ls *.exe | sed 's/^[^0-9]*//' | sed 's/\..*//' | sed 's/_/\./g')" >> $GITHUB_OUTPUT
+          echo "executable_file=$(ls *.exe)" >> $GITHUB_OUTPUT
+
+  extract:
+    runs-on: windows-latest
+    needs: environment
+    env:
+      version: ${{ needs.environment.outputs.qqpcmgr_version }}
+      executable: ${{ needs.environment.outputs.executable_file }}
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Set locale and language in China
+        id: extract
+        run: |
+          Set-WinSystemLocale zh-CN
+          Set-Culture zh-CN
+          Set-WinUILanguageOverride zh-CN
+          $env:LANG = 'zh-CN'
+
+      - name: Install `QQPCMgr` and running 60s
+        run: |
+          Start-Process -FilePath ".\${{ env.executable }}" -ArgumentList "/S"
+          Start-Sleep -Seconds 60
+        shell: pwsh
+
+      - name: Update libraries and wating 10s
+        run: |
+          Start-Process -FilePath "C:\Program Files (x86)\Tencent\QQPCMgr\${{ env.version }}\QMUpdate\QQPCMgrUpdate.exe" -ArgumentList "/datafile /elevated" -Verb RunAs
+          Start-Sleep -Seconds 10
+        shell: pwsh
+
+      - name: Open `QQPCSoftMgr` and running 120s
+        run: |
+          Start-Process -FilePath "C:\Program Files (x86)\Tencent\QQPCMgr\${{ env.version }}\QQPCSoftMgr.exe"
+          Start-Sleep -Seconds 120
+        shell: pwsh
+
+      - name: Copy files
+        run: |
+          md "${{ env.version }}" libraries upload_files
+          taskkill /f /t /im QQPC*
+          taskkill /f /t /im QMDL*
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\Image" "${{ env.version }}\Image" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\Images" "${{ env.version }}\Images" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\plugins\SoftUninstall" "${{ env.version }}\plugins\SoftUninstall" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\qbclient" "${{ env.version }}\qbclient" /im /is /it /mt:32
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\qmsoftmgrupdate" "${{ env.version }}\qmsoftmgrupdate" /im /is /it /mt:32
+          del /f /s /q "${{ env.version }}\qmsoftmgrupdate\updatedate.txt"
+          robocopy /e "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SoftMgr" "${{ env.version }}\SoftMgr" /im /is /it /mt:32
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\Soft*" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QQPCSoft*" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\beacon_sdk.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\Common.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\dr.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\FastUninstScpt.etf" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\GF.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\GlobalConfig.etf" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\LoadError.html" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\msvcp*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\p2papp.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\PackageMgr.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\ptrate.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMCommon.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMDL.exe" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMDlder.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMDns.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMExt.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMGuid*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMIpc*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMNetworkMgr*" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMPrivilege*" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMScriptHost.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMStuck*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QMSysRepProv*" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QQFileFlt.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QQPCExternal.exe" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QQPCMgr.exe" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SmartInstall.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\TAVEng.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\TenioDL*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\TSSysKitProxy.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\vccorlib*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\vcomp*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\vccorlib*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\vcruntime*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\xGraphic*.dll" "${{ env.version }}"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\zlib.dll" "${{ env.version }}"
+
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\GlobalConfig.etf" "libraries"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SoftPolicy.etf" "libraries"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SoftVerInfo.etf" "libraries"
+        shell: cmd
+
+      - name: Install `WinRAR`
+        run: choco install winrar -y
+
+      - name: Zip `QQPCSoftMgr` files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -afzip QQPCSoftMgr.zip "${{ env.version }}\*" -r
+        shell: cmd
+
+      - name: Zip `libraries` files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -afzip libraries.zip libraries\* -r
+        shell: cmd
+
+      - name: Create `WinRAR` sfx config
+        run: |
+          $content = @"
+          Path="%PROGRAMFILES(X86)%\Tencent\QQPCMgr"
+          Setup="${{ env.version }}\QQPCSoftMgr.exe"
+          Title=软件管理
+          Text
+          {
+          提取自腾讯电脑管家 ${{ env.version }} 版本
+          }
+          Silent=0
+          Overwrite=1
+          Shortcut=D, "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\QQPCSoftMgr.exe", , 安装、升级和卸载应用程序, 软件管理, "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\Images\softmgr.ico"
+          "@
+
+          $bytes = [System.Text.Encoding]::GetEncoding("GB2312").GetBytes($content)
+          [System.IO.File]::WriteAllBytes("config.txt", $bytes)
+
+      - name: Create self-extracting exe and copy files
+        run: |
+          "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -sfx -z"config.txt" -r QQPCSoftMgr.exe "${{ env.version }}\*"
+          copy /y QQPCSoftMgr.zip upload_files
+          copy /y QQPCSoftMgr.exe upload_files
+          copy /y libraries.zip upload_files
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\GlobalConfig.etf" "upload_files"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SoftPolicy.etf" "upload_files"
+          copy /y "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\${{ env.version }}\SoftVerInfo.etf" "upload_files"
+        shell: cmd
+
+      - name: Upload files to workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: QQPCSoftMgr
+          path: upload_files/*
+          compression-level: 9
+
+  push:
+    runs-on: ubuntu-latest
+    needs:
+      - environment
+      - extract
+    env:
+      update_TIME: ${{ needs.environment.outputs.update_time }}
+      qqpcmgr_VERSION: ${{ needs.environment.outputs.qqpcmgr_version }}
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Download files from workspace
+        uses: actions/download-artifact@v4
+        with:
+          path: .
+
+      - name: Release and upload `QQPCSoftMgr` assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: QQPCSoftMgr
+          tag: QQPCSoftMgr
+          overwrite: true
+          body: |
+            [腾讯软件管理](https://pc.qq.com)免安装绿色版提取自[腾讯电脑管家](https://guanjia.qq.com) v${{ env.qqpcmgr_VERSION }} 版本
+            软件库文件更新于 ${{ env.update_TIME }}
+          file_glob: true
+          file: ./QQPCSoftMgr/*
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 3
+          keep_minimum_runs: 1
