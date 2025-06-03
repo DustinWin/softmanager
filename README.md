@@ -22,8 +22,7 @@
 - ① 编辑文本文档，粘贴如下内容：
   - 注：将 `{版本号}` 替换为当前提取自腾讯电脑管家的版本号
 
-```
-@echo off
+```shell
 rem 结束软件管理相关进程
 taskkill /f /t /im QQPCSoftMgr*
 taskkill /f /t /im QMDL*
