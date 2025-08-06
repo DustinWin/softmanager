@@ -183,7 +183,7 @@ jobs:
       - name: Download files from workspace
         uses: actions/download-artifact@v5
         with:
-          path: .
+          path: ./QQPCSoftMgr/
 
       - name: Release and upload `QQPCSoftMgr` assets
         uses: svenstaro/upload-release-action@v2
