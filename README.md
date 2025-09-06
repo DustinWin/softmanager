@@ -1,6 +1,6 @@
 # 一、 说明
 1. 每周五下午 6 点（北京时间 UTC+8）自动构建
-2. [软件管理](https://pc.qq.com)提取自[腾讯电脑管家](https://guanjia.qq.com) 15.6.23123.201 版本（v15 系列版本已停更）
+2. [软件管理](https://pc.qq.com)提取自[腾讯电脑管家](https://guanjia.qq.com) v15 系列版本（已停更）
 3. 软件库文件包含 SoftPolicy.etf 和 SoftVerInfo.etf（控制“软件库”版本），以及 GlobalConfig.etf（控制“首页”和“游戏”栏目中的推荐列表）
 
 # 二、 软件特色

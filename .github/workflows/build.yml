@@ -24,8 +24,7 @@ jobs:
         id: environment
         run: |
           echo "update_time=$(date -d '+8 hours' +%Y-%m-%d)" >> $GITHUB_OUTPUT
-          echo "qqpcmgr_version=$(ls *.exe | perl -ne '/_([0-9][^\.]+)/ && print "$1\n"' | sed 's/_/\./g')" >> $GITHUB_OUTPUT
-          echo "executable_file=$(ls *.exe)" >> $GITHUB_OUTPUT
+          echo "qqpcmgr_version=$(cat ./version.txt)" >> $GITHUB_OUTPUT
 
   extract:
     runs-on: windows-latest
@@ -37,8 +36,12 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@v5
 
+      - name: Download `QQPCMgr` installer
+        run: |
+          md .\tmp
+          curl -o .\tmp\QQPCMgr.exe -L "http://dlied6.bytes.tcdnos.com/invc/xfspeed/qqpcmgr/versetup/portal/portal/PCMgr_Setup_${echo ${{ env.version }} | sed 's/_/\./g' }.exe"
+
       - name: Set locale and language in China
-        id: extract
         run: |
           Set-WinSystemLocale zh-CN
           Set-Culture zh-CN
@@ -47,8 +50,9 @@ jobs:
 
       - name: Install `QQPCMgr` and running 60s
         run: |
-          Start-Process -FilePath ".\${{ env.executable }}" -ArgumentList "/S"
+          Start-Process -FilePath .\tmp\QQPCMgr.exe -ArgumentList "/S"
           Start-Sleep -Seconds 60
+          rd /s /q .\tmp*
         shell: pwsh
 
       - name: Update `libraries` and wating 10s
@@ -140,7 +144,7 @@ jobs:
           Title=软件管理
           Text
           {
-          提取自腾讯电脑管家 ${{ env.version }} 版本
+          提取自腾讯电脑管家 v${{ env.version }} 版本
           }
           Silent=0
           Overwrite=1
