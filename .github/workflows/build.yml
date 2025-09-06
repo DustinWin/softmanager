@@ -15,7 +15,6 @@ jobs:
     outputs:
       update_time: ${{ steps.environment.outputs.update_time }}
       qqpcmgr_version: ${{ steps.environment.outputs.qqpcmgr_version }}
-      executable_file: ${{ steps.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v5
@@ -31,7 +30,6 @@ jobs:
     needs: environment
     env:
       version: ${{ needs.environment.outputs.qqpcmgr_version }}
-      executable: ${{ needs.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v5
@@ -39,7 +37,10 @@ jobs:
       - name: Download `QQPCMgr` installer
         run: |
           md .\tmp
-          curl -o .\tmp\QQPCMgr.exe -L "http://dlied6.bytes.tcdnos.com/invc/xfspeed/qqpcmgr/versetup/portal/portal/PCMgr_Setup_${echo ${{ env.version }} | sed 's/_/\./g' }.exe"
+          $ver=$env:version -replace('_','.')
+          $url="http://dlied6.bytes.tcdnos.com/invc/xfspeed/qqpcmgr/versetup/portal/portal/PCMgr_Setup_${ver}.exe"
+          curl -o .\tmp\QQPCMgr.exe -L "$url"
+        shell: pwsh
 
       - name: Set locale and language in China
         run: |
@@ -52,7 +53,7 @@ jobs:
         run: |
           Start-Process -FilePath .\tmp\QQPCMgr.exe -ArgumentList "/S"
           Start-Sleep -Seconds 60
-          rd /s /q .\tmp*
+          Remove-Item -Recurse -Force .\tmp
         shell: pwsh
 
       - name: Update `libraries` and wating 10s
