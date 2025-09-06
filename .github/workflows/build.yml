@@ -18,13 +18,13 @@ jobs:
       executable_file: ${{ steps.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@main
+        uses: actions/checkout@v5
 
       - name: Set variables
         id: environment
         run: |
           echo "update_time=$(date -d '+8 hours' +%Y-%m-%d)" >> $GITHUB_OUTPUT
-          echo "qqpcmgr_version=$(ls *.exe | sed 's/^[^0-9]*//' | sed 's/\..*//' | sed 's/_/\./g')" >> $GITHUB_OUTPUT
+          echo "qqpcmgr_version=$(ls *.exe | perl -ne '/_([0-9][^\.]+)/ && print "$1"' | sed 's/_/\./g')" >> $GITHUB_OUTPUT
           echo "executable_file=$(ls *.exe)" >> $GITHUB_OUTPUT
 
   extract:
@@ -35,7 +35,9 @@ jobs:
       executable: ${{ needs.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@main
+        uses: actions/checkout@v5
+        with:
+          lfs: true
 
       - name: Set locale and language in China
         id: extract
@@ -51,7 +53,7 @@ jobs:
           Start-Sleep -Seconds 60
         shell: pwsh
 
-      - name: Update libraries and wating 10s
+      - name: Update `libraries` and wating 10s
         run: |
           Start-Process -FilePath "C:\Program Files (x86)\Tencent\QQPCMgr\${{ env.version }}\QMUpdate\QQPCMgrUpdate.exe" -ArgumentList "/datafile /elevated" -Verb RunAs
           Start-Sleep -Seconds 10
@@ -150,7 +152,7 @@ jobs:
           $bytes = [System.Text.Encoding]::GetEncoding("GB2312").GetBytes($content)
           [System.IO.File]::WriteAllBytes("config.txt", $bytes)
 
-      - name: Create self-extracting exe and copy files
+      - name: Create `QQPCSoftMgr.exe` self-extracting exe and copy files
         run: |
           "%PROGRAMFILES%\WinRAR\WinRAR.exe" a -sfx -z"config.txt" -r QQPCSoftMgr.exe "${{ env.version }}\*"
           copy /y QQPCSoftMgr.zip upload_files
@@ -166,7 +168,6 @@ jobs:
         with:
           name: QQPCSoftMgr
           path: upload_files/*
-          compression-level: 9
 
   push:
     runs-on: ubuntu-latest
@@ -178,7 +179,7 @@ jobs:
       qqpcmgr_VERSION: ${{ needs.environment.outputs.qqpcmgr_version }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@main
+        uses: actions/checkout@v5
 
       - name: Download files from workspace
         uses: actions/download-artifact@v5
