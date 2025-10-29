@@ -164,7 +164,7 @@ jobs:
         shell: cmd
 
       - name: Upload files to workspace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: QQPCSoftMgr
           path: upload_files/*
@@ -182,7 +182,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download files from workspace
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ./QQPCSoftMgr/
 
