@@ -18,7 +18,7 @@ jobs:
       executable_file: ${{ steps.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set variables
         id: environment
@@ -35,7 +35,7 @@ jobs:
       executable: ${{ needs.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -179,7 +179,7 @@ jobs:
       qqpcmgr_VERSION: ${{ needs.environment.outputs.qqpcmgr_version }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download files from workspace
         uses: actions/download-artifact@v6
