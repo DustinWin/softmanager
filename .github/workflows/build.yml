@@ -18,7 +18,7 @@ jobs:
       executable_file: ${{ steps.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set variables
         id: environment
@@ -35,7 +35,7 @@ jobs:
       executable: ${{ needs.environment.outputs.executable_file }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -164,7 +164,7 @@ jobs:
         shell: cmd
 
       - name: Upload files to workspace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: QQPCSoftMgr
           path: upload_files/*
@@ -179,12 +179,23 @@ jobs:
       qqpcmgr_VERSION: ${{ needs.environment.outputs.qqpcmgr_version }}
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download files from workspace
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: ./QQPCSoftMgr/
+
+      - name: Commit and push `QQPCSoftMgr` branch
+        run: |
+          cd ./QQPCSoftMgr/ || exit 1
+          git init
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git checkout -b QQPCSoftMgr
+          git add ./*.etf && git commit -m "软件库文件更新于 ${{ env.update_TIME }}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f origin QQPCSoftMgr
 
       - name: Release and upload `QQPCSoftMgr` assets
         uses: svenstaro/upload-release-action@v2
@@ -198,6 +209,13 @@ jobs:
             软件库文件更新于 ${{ env.update_TIME }}
           file_glob: true
           file: ./QQPCSoftMgr/*
+
+      - name: Purge jsDelivr CDN
+        run: |
+          cd ./QQPCSoftMgr/ || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@QQPCSoftMgr/${file}"
+          done
 
       - name: Delete old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
