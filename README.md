@@ -27,9 +27,9 @@ rem 结束软件管理相关进程
 taskkill /f /t /im QQPCSoftMgr*
 taskkill /f /t /im QMDL*
 rem 更新软件库文件
-curl -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\GlobalConfig.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/GlobalConfig.etf
-curl -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\SoftPolicy.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/SoftPolicy.etf
-curl -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\SoftVerInfo.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/SoftVerInfo.etf
+curl -sS -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\GlobalConfig.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/GlobalConfig.etf
+curl -sS -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\SoftPolicy.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/SoftPolicy.etf
+curl -sS -o "%PROGRAMFILES(X86)%\Tencent\QQPCMgr\{版本号}\SoftVerInfo.etf" -L https://cdn.jsdelivr.net/gh/DustinWin/softmanager@QQPCSoftMgr/SoftVerInfo.etf
 echo 更新软件库文件成功
 pause
 ```
