@@ -2,7 +2,8 @@ name: Update QQPCSoftMgr
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * 5"
+    - cron: "0 18 * * 5"
+      timezone: "Asia/Shanghai"
   push:
     branches:
       - main
@@ -27,9 +28,9 @@ jobs:
       - name: Set variables
         id: environment
         run: |
-          echo "update_time=$(date -d '+8 hours' +%Y-%m-%d)" >> $GITHUB_OUTPUT
-          echo "qqpcmgr_version=$(ls *.exe | perl -ne '/_([0-9][^\.]+)/ && print "$1"' | sed 's/_/\./g')" >> $GITHUB_OUTPUT
-          echo "executable_file=$(ls *.exe)" >> $GITHUB_OUTPUT
+          echo "update_time=$(date -d '+8 hours' +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
+          echo "qqpcmgr_version=$(ls *.exe | perl -ne '/_([0-9][^\.]+)/ && print "$1"' | sed 's/_/\./g')" >> "${GITHUB_OUTPUT}"
+          echo "executable_file=$(ls *.exe)" >> "${GITHUB_OUTPUT}"
 
   extract:
     runs-on: windows-latest
